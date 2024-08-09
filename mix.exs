@@ -1,14 +1,15 @@
 defmodule ImageTools.MixProject do
   use Mix.Project
+  @version "0.1.3"
 
   def project do
     [
       app: :image_tools,
       description: "A set of simple image tools like rotate an image implemented in Rust",
       package: package(),
-      version: "0.1.2",
+      version: @version,
       elixir: "~> 1.17",
-      start_permanent: Mix.env() == :prod,
+      build_embedded: Mix.env() == :prod,
       deps: deps()
     ]
   end
@@ -24,8 +25,6 @@ defmodule ImageTools.MixProject do
   defp deps do
     [
       {:rustler, "~> 0.34.0"}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
   end
 
