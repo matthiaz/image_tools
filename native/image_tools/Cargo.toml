@@ -13,3 +13,5 @@ crate-type = ["cdylib"]
 rustler = "0.34.0"
 image = "0.25.2"
 imageproc = "0.25.0"
+libwebp-sys = "0.9"
+webp = "0.3"
