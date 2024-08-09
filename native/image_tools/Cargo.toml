@@ -1,0 +1,15 @@
+[package]
+name = "image_tools"
+version = "0.1.0"
+authors = []
+edition = "2021"
+
+[lib]
+name = "image_tools"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+rustler = "0.34.0"
+image = "0.25.2"
+imageproc = "0.25.0"
