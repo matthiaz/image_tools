@@ -32,7 +32,8 @@ defmodule ImageTools.MixProject do
     [
       name: "image_tools",
       licenses: ["Unlicense"],
-      links: %{"GitHub" => "https://github.com/matthiaz/image_tools"}
+      links: %{"GitHub" => "https://github.com/matthiaz/image_tools"},
+      files: ~w(mix.exs README.md lib native test .formatter.exs)
     ]
   end
 end
