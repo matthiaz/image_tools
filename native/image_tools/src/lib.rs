@@ -1,9 +1,10 @@
-use image::{load_from_memory, Rgba, DynamicImage, imageops};
-use imageproc::geometric_transformations::{rotate_about_center, Interpolation};
+use image::{DynamicImage, imageops};
 use rustler::types::tuple::make_tuple;
 use rustler::{Binary, NifResult, Env, Term, OwnedBinary, Encoder};
 use libwebp_sys::WebPImageHint;
 use webp::{Encoder as WebPEncoder, WebPConfig};
+use std::fs::File;
+use std::io::BufReader;
 
 const DEFAULT_QUALITY: f32 = 60.0;
 
@@ -14,33 +15,57 @@ mod atoms {
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
-fn _rotate_image<'a>(env: Env<'a>, binary: Binary<'a>, degrees: f32) -> NifResult<(Binary<'a>, u32, u32)> {
-    // Load the image from the binary data
-    let img = load_from_memory(&binary).map_err(|_| rustler::Error::BadArg)?;
+fn _rotate_image<'a>(
+    //env: Env<'a>,
+    path: String) 
+    -> NifResult<String> {
+    
+    // Open the image file with BufReader
+    let file = match File::open(&path) {
+        Ok(file) => file,
+        Err(e) => {
+            eprintln!("Failed to open path: {:?}", e);
+            return Err(rustler::Error::BadArg);
+        }
+    };
 
-    // Convert to RGBA if necessary
-    let img = img.to_rgba8();
+    let buf_reader = BufReader::new(file);
+    let img = match image::load(buf_reader, image::ImageFormat::Jpeg) {
+        Ok(img) => img,
+        Err(e) => {
+            eprintln!("Failed to load JPEG image: {:?}", e);
+            return Err(rustler::Error::BadArg);
+        }
+    };
 
-    // Rotate the image using imageproc
-    let rotated_img = rotate_about_center(
-        &img,
-        degrees.to_radians(),
-        Interpolation::Bilinear,
-        Rgba([0u8, 0u8, 0u8, 0u8]),
-    );
+    // Rotate the image by 90 degrees
+    let rotated_img = img.rotate90().into_rgb8();
 
-    // Convert the rotated image back to a binary format
-    let mut buf = Vec::new();
-    let mut encoder = image::codecs::jpeg::JpegEncoder::new(&mut buf);
-    encoder.encode_image(&DynamicImage::ImageRgba8(rotated_img.clone())).map_err(|e| err_str(e.to_string()))?;
+    // Encode the rotated image to JPEG format
+    let mut encoded = Vec::new();
+    let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut encoded, 85);
+    if let Err(e) = encoder.encode(&rotated_img, rotated_img.width(), rotated_img.height(), image::ExtendedColorType::Rgb8) {
+        eprintln!("Failed to encode image: {:?}", e);
+        return Err(rustler::Error::Term(Box::new(e.to_string())));
+    }
 
-    // Create OwnedBinary from encoded image
-    let mut binary = OwnedBinary::new(buf.len()).ok_or_else(|| rustler::Error::Term(Box::new("Failed to create binary")))?;
-    binary.as_mut_slice().copy_from_slice(&buf);
+    // Write the encoded image data to the file
+    if let Err(e) = std::fs::write(&path, encoded) {
+        eprintln!("Failed to write image file: {:?}", e);
+        return Err(rustler::Error::Term(Box::new(e.to_string())));
+    }
 
-    Ok((binary.release(env), rotated_img.width(), rotated_img.height()))
+    // Return the path of the overwritten image
+    Ok(path)
 }
 
+
+
+
+
+
+
+// thumbnail creation functions
 #[rustler::nif(schedule = "DirtyCpu")]
 fn _create_thumbnail<'a>(
     env: Env<'a>,

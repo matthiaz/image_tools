@@ -5,10 +5,10 @@ defmodule ImageTools do
   Documentation for `ImageTools`.
   """
 
-  @spec rotate(binary(), non_neg_integer()) ::
-          {:ok, binary()} | {:error, String.t()}
-  def rotate(body, degrees \\ 90) do
-    _rotate_image(body, degrees * 1.0) # convert to float
+  @spec rotate(String.t()) ::
+          {:ok, String.t()} | {:error, String.t()}
+  def rotate(path) do
+   {:ok, _rotate_image(path)}
   end
 
   @spec create_thumbnail(binary(), non_neg_integer(), non_neg_integer()) ::
@@ -71,9 +71,9 @@ defmodule ImageTools do
     :erlang.nif_error(:nif_not_loaded)
   end
 
-  @spec _rotate_image(binary(), float()) ::
-          {:ok, binary()} | {:error, String.t()}
-  def _rotate_image(_binary, _degrees) do
+  @spec _rotate_image(String.t()) ::
+          {:ok, String.t()} | {:error, String.t()}
+  def _rotate_image(_path) do
     :erlang.nif_error(:nif_not_loaded)
   end
 end

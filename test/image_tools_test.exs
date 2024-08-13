@@ -1,8 +1,14 @@
 defmodule ImageToolsTest do
   use ExUnit.Case
   import ExUnit.CaptureIO
+  @test_path Path.join(__DIR__, "assets/sample.jpg");
+  @test_image File.read!(@test_path)
 
-  @test_image File.read!(Path.join(__DIR__, "assets/sample.jpg"))
+  test "rotate/1 rotates an image" do
+    dbg(@test_path)
+    dbg(ImageTools.rotate(@test_path))
+    assert {:ok, @test_path} = ImageTools.rotate(@test_path)
+  end
 
   test "create_thumbnail/4 creates a thumbnail successfully" do
     assert {:ok, binary} = ImageTools.create_thumbnail(@test_image, 320, 240)
