@@ -1,11 +1,11 @@
-use image::{DynamicImage, imageops};
+use image::{DynamicImage, imageops, ImageFormat, ImageEncoder};
 use rustler::types::tuple::make_tuple;
 use rustler::{Binary, NifResult, Env, Term, OwnedBinary, Encoder};
 use libwebp_sys::WebPImageHint;
 use webp::{Encoder as WebPEncoder, WebPConfig};
 use std::fs::File;
 use std::io::BufReader;
-
+use std::io::Read;
 const DEFAULT_QUALITY: f32 = 60.0;
 
 mod atoms {
@@ -13,14 +13,9 @@ mod atoms {
         ok
     }
 }
-
 #[rustler::nif(schedule = "DirtyCpu")]
-fn _rotate_image<'a>(
-    //env: Env<'a>,
-    path: String) 
-    -> NifResult<String> {
-    
-    // Open the image file with BufReader
+fn _rotate_image<'a>(path: String) -> NifResult<String> {
+    // Open the image file
     let file = match File::open(&path) {
         Ok(file) => file,
         Err(e) => {
@@ -29,11 +24,28 @@ fn _rotate_image<'a>(
         }
     };
 
-    let buf_reader = BufReader::new(file);
-    let img = match image::load(buf_reader, image::ImageFormat::Jpeg) {
+    let mut buf_reader = BufReader::new(file);
+
+    // Read the first few bytes to guess the image format
+    let mut buffer = [0; 10];
+    if buf_reader.read_exact(&mut buffer).is_err() {
+        eprintln!("Failed to read the file header for format detection.");
+        return Err(rustler::Error::BadArg);
+    }
+
+    let format = match image::guess_format(&buffer) {
+        Ok(format) => format,
+        Err(e) => {
+            eprintln!("Failed to guess image format: {:?}", e);
+            return Err(rustler::Error::BadArg);
+        }
+    };
+
+    // Reset the reader to the beginning of the file
+    let img = match image::load(buf_reader, format) {
         Ok(img) => img,
         Err(e) => {
-            eprintln!("Failed to load JPEG image: {:?}", e);
+            eprintln!("Failed to load image: {:?}", e);
             return Err(rustler::Error::BadArg);
         }
     };
@@ -41,15 +53,36 @@ fn _rotate_image<'a>(
     // Rotate the image by 90 degrees
     let rotated_img = img.rotate90().into_rgb8();
 
-    // Encode the rotated image to JPEG format
+    // Encode the rotated image back into the original format
     let mut encoded = Vec::new();
-    let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut encoded, 85);
-    if let Err(e) = encoder.encode(&rotated_img, rotated_img.width(), rotated_img.height(), image::ExtendedColorType::Rgb8) {
-        eprintln!("Failed to encode image: {:?}", e);
-        return Err(rustler::Error::Term(Box::new(e.to_string())));
+    match format {
+        ImageFormat::Jpeg => {
+            let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut encoded, 85);
+            if let Err(e) = encoder.encode(&rotated_img, rotated_img.width(), rotated_img.height(), image::ColorType::Rgb8.into()) {
+                eprintln!("Failed to encode JPEG image: {:?}", e);
+                return Err(rustler::Error::Term(Box::new(e.to_string())));
+            }
+        }
+        ImageFormat::Png => {
+            let encoder = image::codecs::png::PngEncoder::new(&mut encoded);
+            let raw_image_data = rotated_img.as_raw();
+            if let Err(e) = encoder.write_image(
+                raw_image_data,
+                rotated_img.width(),
+                rotated_img.height(),
+                image::ExtendedColorType::Rgb8,
+            ) {
+                eprintln!("Failed to encode PNG image: {:?}", e);
+                return Err(rustler::Error::Term(Box::new(e.to_string())));
+            }
+        }
+        _ => {
+            eprintln!("Unsupported image format");
+            return Err(rustler::Error::BadArg);
+        }
     }
 
-    // Write the encoded image data to the file
+    // Write the encoded image data back to the file
     if let Err(e) = std::fs::write(&path, encoded) {
         eprintln!("Failed to write image file: {:?}", e);
         return Err(rustler::Error::Term(Box::new(e.to_string())));

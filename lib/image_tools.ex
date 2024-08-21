@@ -8,7 +8,7 @@ defmodule ImageTools do
   @spec rotate(String.t()) ::
           {:ok, String.t()} | {:error, String.t()}
   def rotate(path) do
-   {:ok, _rotate_image(path)}
+    {:ok, _rotate_image(path)}
   end
 
   @spec create_thumbnail(binary(), non_neg_integer(), non_neg_integer()) ::
@@ -40,10 +40,13 @@ defmodule ImageTools do
   def create_thumbnail(body, width, height, quality: quality) when is_number(quality),
     do: create_thumbnail(body, width, height, quality / 1, nil)
 
-  @spec create_thumbnail(binary(), non_neg_integer(), non_neg_integer(), target_size: non_neg_integer()) ::
+  @spec create_thumbnail(binary(), non_neg_integer(), non_neg_integer(),
+          target_size: non_neg_integer()
+        ) ::
           {:ok, binary()} | {:error, String.t()}
-  def create_thumbnail(body, width, height, target_size: target_size) when is_integer(target_size),
-    do: create_thumbnail(body, width, height, nil, target_size)
+  def create_thumbnail(body, width, height, target_size: target_size)
+      when is_integer(target_size),
+      do: create_thumbnail(body, width, height, nil, target_size)
 
   defp create_thumbnail(body, _, _, _, _) when is_nil(body), do: {:error, "body is empty"}
   defp create_thumbnail(_, width, _, _, _) when width <= 0, do: {:error, "width must be > 0"}
@@ -55,17 +58,30 @@ defmodule ImageTools do
   defp create_thumbnail(_, _, _, quality, _) when not is_nil(quality) and quality > 100,
     do: {:error, "quality must be <= 100"}
 
-  defp create_thumbnail(_, _, _, _, target_size) when not is_nil(target_size) and target_size <= 0,
-    do: {:error, "target_size must be > 0"}
+  defp create_thumbnail(_, _, _, _, target_size)
+       when not is_nil(target_size) and target_size <= 0,
+       do: {:error, "target_size must be > 0"}
 
-  @spec create_thumbnail(binary(), non_neg_integer(), non_neg_integer(), float() | nil, non_neg_integer() | nil) ::
+  @spec create_thumbnail(
+          binary(),
+          non_neg_integer(),
+          non_neg_integer(),
+          float() | nil,
+          non_neg_integer() | nil
+        ) ::
           {:ok, binary()} | {:error, String.t()}
   defp create_thumbnail(body, width, height, quality, target_size) do
     _create_thumbnail(body, width, height, quality, target_size)
   end
 
   # NIF function definition
-  @spec _create_thumbnail(binary(), non_neg_integer(), non_neg_integer(), float() | nil, non_neg_integer() | nil) ::
+  @spec _create_thumbnail(
+          binary(),
+          non_neg_integer(),
+          non_neg_integer(),
+          float() | nil,
+          non_neg_integer() | nil
+        ) ::
           {:ok, binary()} | {:error, String.t()}
   defp _create_thumbnail(_body, _width, _height, _quality, _target_size) do
     :erlang.nif_error(:nif_not_loaded)
