@@ -1,6 +1,6 @@
 defmodule ImageTools.MixProject do
   use Mix.Project
-  @version "0.1.7"
+  @version "0.1.8"
 
   def project do
     [
@@ -10,7 +10,8 @@ defmodule ImageTools.MixProject do
       version: @version,
       elixir: "~> 1.17",
       build_embedded: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      aliases: aliases()
     ]
   end
 
@@ -34,6 +35,12 @@ defmodule ImageTools.MixProject do
       licenses: ["Unlicense"],
       links: %{"GitHub" => "https://github.com/matthiaz/image_tools"},
       files: ~w(mix.exs README.md lib native test .formatter.exs)
+    ]
+  end
+
+  defp aliases do
+    [
+      compile: ["precompile", "compile"]
     ]
   end
 end
