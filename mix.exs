@@ -1,6 +1,6 @@
 defmodule ImageTools.MixProject do
   use Mix.Project
-  @version "0.1.9"
+  @version "0.1.10"
 
   def project do
     [
@@ -9,7 +9,7 @@ defmodule ImageTools.MixProject do
       package: package(),
       version: @version,
       elixir: "~> 1.17",
-      build_embedded: Mix.env() == :prod,
+      #build_embedded: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases()
     ]
