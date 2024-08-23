@@ -14,3 +14,5 @@ rustflags = [
 rustflags = [
     "-C", "target-feature=-crt-static"
 ]
+[registries.crates-io]
+protocol = "sparse"
