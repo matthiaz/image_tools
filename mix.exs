@@ -9,7 +9,7 @@ defmodule ImageTools.MixProject do
       package: package(),
       version: @version,
       elixir: "~> 1.17",
-      #build_embedded: Mix.env() == :prod,
+      build_embedded: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases()
     ]
@@ -34,7 +34,7 @@ defmodule ImageTools.MixProject do
       name: "image_tools",
       licenses: ["Unlicense"],
       links: %{"GitHub" => "https://github.com/matthiaz/image_tools"},
-      files: ~w(mix.exs README.md lib native test .formatter.exs),
+      files: ~w(mix.exs README.md lib native test .formatter.exs priv),
       exclude_patterns: ~w(target _build)
     ]
   end
