@@ -1,6 +1,6 @@
 defmodule ImageTools.MixProject do
   use Mix.Project
-  @version "0.1.10"
+  @version "0.1.11"
 
   def project do
     [
@@ -41,7 +41,8 @@ defmodule ImageTools.MixProject do
 
   defp aliases do
     [
-      compile: ["precompile", "compile"]
+      compile: ["precompile", "compile"],
+      release: ["precompile", "release"]
     ]
   end
 end
