@@ -1,6 +1,6 @@
 defmodule ImageTools.MixProject do
   use Mix.Project
-  @version "0.1.13"
+  @version "0.1.14"
 
   def project do
     [
@@ -40,9 +40,13 @@ defmodule ImageTools.MixProject do
   end
 
   defp aliases do
-    [
-      compile: ["precompile", "compile"],
-      release: ["precompile", "release"]
-    ]
+    if Mix.env() == :prod do
+      []
+    else
+      [
+        compile: ["precompile", "compile"],
+        release: ["precompile", "release"],
+      ]
+    end
   end
 end

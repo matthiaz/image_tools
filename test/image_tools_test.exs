@@ -5,8 +5,6 @@ defmodule ImageToolsTest do
   @test_image File.read!(@test_path)
 
   test "rotate/1 rotates an image" do
-    dbg(@test_path)
-    dbg(ImageTools.rotate(@test_path))
     assert {:ok, @test_path} = ImageTools.rotate(@test_path)
   end
 
