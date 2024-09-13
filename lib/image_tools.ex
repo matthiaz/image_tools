@@ -6,9 +6,24 @@ defmodule ImageTools do
   """
 
   @spec rotate(String.t()) ::
-          {:ok, String.t()} | {:error, String.t()}
+  {:ok, String.t()} | {:error, String.t()}
   def rotate(path) do
-    {:ok, _rotate_image(path)}
+    rotate_right(path)
+  end
+  @spec rotate_right(String.t()) ::
+          {:ok, String.t()} | {:error, String.t()}
+  def rotate_right(path) do
+    {:ok, _rotate_image(path, "right")}
+  end
+  @spec rotate_left(String.t()) ::
+          {:ok, String.t()} | {:error, String.t()}
+  def rotate_left(path) do
+    {:ok, _rotate_image(path, "left")}
+  end
+  @spec flip(String.t()) ::
+          {:ok, String.t()} | {:error, String.t()}
+  def flip(path) do
+    {:ok, _rotate_image(path, "flip")}
   end
 
   @spec create_thumbnail(binary(), non_neg_integer(), non_neg_integer()) ::
@@ -87,9 +102,9 @@ defmodule ImageTools do
     :erlang.nif_error(:nif_not_loaded)
   end
 
-  @spec _rotate_image(String.t()) ::
+  @spec _rotate_image(String.t(), String.t()) ::
           {:ok, String.t()} | {:error, String.t()}
-  def _rotate_image(_path) do
+  def _rotate_image(_path, _direction) do
     :erlang.nif_error(:nif_not_loaded)
   end
 end

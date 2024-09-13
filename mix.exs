@@ -1,6 +1,6 @@
 defmodule ImageTools.MixProject do
   use Mix.Project
-  @version "0.1.14"
+  @version "0.1.16"
 
   def project do
     [

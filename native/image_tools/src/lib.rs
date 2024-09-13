@@ -15,8 +15,9 @@ mod atoms {
         ok
     }
 }
+
 #[rustler::nif(schedule = "DirtyCpu")]
-fn _rotate_image<'a>(path: String) -> NifResult<String> {
+fn _rotate_image<'a>(path: String, direction: String) -> NifResult<String> {
     // Open the image file
     let file = match File::open(&path) {
         Ok(file) => file,
@@ -59,7 +60,13 @@ fn _rotate_image<'a>(path: String) -> NifResult<String> {
     };
 
     // Rotate the image by 90 degrees
-    let rotated_img = img.rotate90().into_rgb8();
+    let rotated_img = match direction.as_str() {
+        "right" => img.rotate90().into_rgb8(),
+        "left" => img.rotate270().into_rgb8(),
+        "flip" => img.rotate180().into_rgb8(), 
+        _ => img.rotate90().into_rgb8(), // nothing given, just rotate90
+    };
+    
 
     // Encode the rotated image back into the original format
     let mut encoded = Vec::new();
