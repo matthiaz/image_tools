@@ -1,4 +1,4 @@
-use image::{DynamicImage, imageops, ImageFormat, ImageEncoder};
+use image::{DynamicImage, imageops, ImageFormat, ImageEncoder, RgbImage};
 use rustler::types::tuple::make_tuple;
 use rustler::{Binary, NifResult, Env, Term, OwnedBinary, Encoder};
 use libwebp_sys::WebPImageHint;
@@ -8,6 +8,7 @@ use std::io::BufReader;
 use std::io::Read;
 use std::io::Seek;
 use std::io::SeekFrom;
+
 const DEFAULT_QUALITY: f32 = 60.0;
 
 mod atoms {
@@ -17,7 +18,81 @@ mod atoms {
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
+fn _resize_image<'a>(path: String, max_pixel_width: u32) -> NifResult<String> {
+    // load in the image and get some meta data
+    let (src_image, format) = match _read_image(&path) {
+        Ok( (img, format) ) => (img, format),
+        Err(e) => {
+            eprintln!("Error encoding image: {:?}", e);
+            return Err(e);
+        }
+    };
+
+    // Compute new dimensions while maintaining aspect ratio
+    let ratio = src_image.width() as f32 / src_image.height() as f32;
+    let (dst_width, dst_height) = (max_pixel_width, max_pixel_width as f32/ratio);
+    // Resize the image using image crate's resize_exact
+    let resized_image = src_image.resize_exact(dst_width, dst_height as u32, image::imageops::FilterType::CatmullRom).into_rgb8();
+
+    // Encode the rotated image back into the original format
+    match _encode_image(resized_image, format) {
+        Ok(encoded) => {
+            // Write the encoded image data back to the file
+            if let Err(e) = std::fs::write(&path, encoded) {
+                eprintln!("Err 87 Failed to write image file: {:?}", e);
+                return Err(rustler::Error::Term(Box::new(e.to_string())));
+            }
+
+            // Return the path of the overwritten image
+            Ok(path)
+        },
+        Err(e) => {
+            eprintln!("Error encoding image: {:?}", e);
+            return Err(e);
+        }
+    }
+}
+
+#[rustler::nif(schedule = "DirtyCpu")]
 fn _rotate_image<'a>(path: String, direction: String) -> NifResult<String> {
+    // load in the image and get some meta data
+    let (img, format) = match _read_image(&path) {
+        Ok( (img, format) ) => (img, format),
+        Err(e) => {
+            eprintln!("Error encoding image: {:?}", e);
+            return Err(e);
+        }
+    };
+
+    // Rotate the image by 90 degrees
+    let rotated_img = match direction.as_str() {
+        "right" => img.rotate90().into_rgb8(),
+        "left" => img.rotate270().into_rgb8(),
+        "flip" => img.rotate180().into_rgb8(), 
+        _ => img.rotate90().into_rgb8(), // nothing given, just rotate90
+    };
+    
+    
+    // Encode the rotated image back into the original format
+    match _encode_image(rotated_img, format) {
+        Ok(encoded) => {
+            // Write the encoded image data back to the file
+            if let Err(e) = std::fs::write(&path, encoded) {
+                eprintln!("Err 87 Failed to write image file: {:?}", e);
+                return Err(rustler::Error::Term(Box::new(e.to_string())));
+            }
+
+            // Return the path of the overwritten image
+            Ok(path)
+        },
+        Err(e) => {
+            eprintln!("Error encoding image: {:?}", e);
+            return Err(e);
+        }
+    }
+}
+
+fn _read_image(path: &String) -> NifResult<(DynamicImage, ImageFormat)> {
     // Open the image file
     let file = match File::open(&path) {
         Ok(file) => file,
@@ -59,16 +134,11 @@ fn _rotate_image<'a>(path: String, direction: String) -> NifResult<String> {
         }
     };
 
-    // Rotate the image by 90 degrees
-    let rotated_img = match direction.as_str() {
-        "right" => img.rotate90().into_rgb8(),
-        "left" => img.rotate270().into_rgb8(),
-        "flip" => img.rotate180().into_rgb8(), 
-        _ => img.rotate90().into_rgb8(), // nothing given, just rotate90
-    };
-    
 
-    // Encode the rotated image back into the original format
+    Ok( (img, format) )
+}
+
+fn _encode_image(rotated_img: RgbImage, format: ImageFormat) -> NifResult<Vec<u8>>{
     let mut encoded = Vec::new();
     match format {
         ImageFormat::Jpeg => {
@@ -96,17 +166,8 @@ fn _rotate_image<'a>(path: String, direction: String) -> NifResult<String> {
             return Err(rustler::Error::BadArg);
         }
     }
-
-    // Write the encoded image data back to the file
-    if let Err(e) = std::fs::write(&path, encoded) {
-        eprintln!("Err 87 Failed to write image file: {:?}", e);
-        return Err(rustler::Error::Term(Box::new(e.to_string())));
-    }
-
-    // Return the path of the overwritten image
-    Ok(path)
+    return Ok(encoded)
 }
-
 
 
 

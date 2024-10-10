@@ -8,6 +8,11 @@ defmodule ImageToolsTest do
     assert {:ok, @test_path} = ImageTools.rotate(@test_path)
   end
 
+  test "resize/2 resizes an image" do
+    assert {:ok, @test_path} = ImageTools.resize(@test_path, 5000)
+    assert {:ok, @test_path} = ImageTools.resize(@test_path, 3456)
+  end
+
   test "create_thumbnail/4 creates a thumbnail successfully" do
     assert {:ok, binary} = ImageTools.create_thumbnail(@test_image, 320, 240)
     assert is_binary(binary)

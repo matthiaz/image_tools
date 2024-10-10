@@ -368,7 +368,7 @@ dependencies = [
 
 [[package]]
 name = "image_tools"
-version = "0.1.14"
+version = "0.1.17"
 dependencies = [
  "image",
  "imageproc",

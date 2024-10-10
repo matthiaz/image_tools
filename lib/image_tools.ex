@@ -5,6 +5,12 @@ defmodule ImageTools do
   Documentation for `ImageTools`.
   """
 
+  @spec resize(String.t(), non_neg_integer()) ::
+  {:ok, String.t()} | {:error, String.t()}
+  def resize(path, max_pixel_width) do
+    {:ok, _resize_image(path, max_pixel_width)}
+  end
+
   @spec rotate(String.t()) ::
   {:ok, String.t()} | {:error, String.t()}
   def rotate(path) do
@@ -105,6 +111,11 @@ defmodule ImageTools do
   @spec _rotate_image(String.t(), String.t()) ::
           {:ok, String.t()} | {:error, String.t()}
   def _rotate_image(_path, _direction) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+  @spec _resize_image(String.t(), non_neg_integer()) ::
+          {:ok, String.t()} | {:error, String.t()}
+  def _resize_image(_path, _max_pixel_width) do
     :erlang.nif_error(:nif_not_loaded)
   end
 end
