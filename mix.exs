@@ -1,6 +1,6 @@
 defmodule ImageTools.MixProject do
   use Mix.Project
-  @version "0.1.17"
+  @version "0.1.18"
 
   def project do
     [
@@ -25,7 +25,7 @@ defmodule ImageTools.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:rustler, "~> 0.34.0"}
+      {:rustler, "~> 0.36.0"}
     ]
   end
 

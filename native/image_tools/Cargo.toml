@@ -1,6 +1,6 @@
 [package]
 name = "image_tools"
-version = "0.1.17"
+version = "0.1.18"
 authors = []
 edition = "2021"
 
@@ -10,7 +10,7 @@ path = "src/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
-rustler = "0.34.0"
+rustler = "0.36.0"
 image = "0.25.2"
 imageproc = "0.25.0"
 libwebp-sys = "0.9"
